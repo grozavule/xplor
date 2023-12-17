@@ -2,23 +2,34 @@ import * as bootstrap from 'bootstrap';
 import axios from "axios";
 
 //elements
-const btnLoadCustomers = document.querySelector('#btn-load-customers');
 const btnAddCustomer = document.querySelector('#btn-add-customer');
+const btnLoadCustomers = document.querySelector('#btn-load-customers');
+const btnSaveCustomer = document.querySelector('#btn-save-customer');
+const container = document.querySelector('.container');
+const formAddCustomer = document.querySelector('#form-add-customer');
+const modalAddCustomer = new bootstrap.Modal('#backdrop');
 const tableCustomerList = document.querySelector('#customers-list');
 
 //functions
+const addCustomerToList = customer => {
+    const tableRow = document.createElement('tr');
+    const values = Object.values(customer);
+    values.forEach(value => {
+        const tableCell = document.createElement('td');
+        tableCell.textContent = value;
+        tableRow.append(tableCell);
+    });
+    tableCustomerList.append(tableRow);
+}
 const displayAddCustomerModal = e => {
     e.preventDefault();
-    console.log("Add Customer was clicked");
-
-    const addCustomerModal = new bootstrap.Modal('#backdrop');
-    addCustomerModal.show();
+    modalAddCustomer.show();
 }
 const displayAlert = message => {
     let alertContainer = document.createElement('div');
     alertContainer.classList.add('alert', 'alert-danger');
     alertContainer.textContent = message;
-    tableCustomerList.prepend(alertContainer);
+    container.insertBefore(alertContainer, tableCustomerList);
     window.scrollTo(0,0);
 }
 
@@ -39,15 +50,7 @@ const loadCustomers = async e => {
         if(customers.data && customers.data.length > 1){
             populateTableHeaders(customers.data[0]);
             customers.data.forEach(customer => {
-                console.log("customer", customer);
-                const tableRow = document.createElement('tr');
-                const values = Object.values(customer);
-                values.forEach(value => {
-                   const tableCell = document.createElement('td');
-                   tableCell.textContent = value;
-                   tableRow.append(tableCell);
-                });
-                tableCustomerList.append(tableRow);
+                addCustomerToList(customer);
             });
         } else {
             displayAlert('No customers were found');
@@ -57,7 +60,29 @@ const loadCustomers = async e => {
     }
 }
 
+const submitAddCustomerForm = async e => {
+    try {
+        e.preventDefault();
+        const customerFormData = new FormData(formAddCustomer);
+        const customerObject = {
+            "full_name": customerFormData.get('full_name'),
+            "email_address": customerFormData.get('email_address'),
+            "phone_number": customerFormData.get('phone_number'),
+            "address": customerFormData.get('address')
+        };
+        const newCustomer = await axios.post('/api/customers', customerObject);
+        addCustomerToList(newCustomer.data);
+    } catch(e) {
+        console.error(e);
+        displayAlert(e.response.data.message);
+    } finally {
+        modalAddCustomer.hide();
+    }
+}
+
 //event listeners
 btnLoadCustomers.addEventListener('click', loadCustomers);
 
 btnAddCustomer.addEventListener('click', displayAddCustomerModal);
+
+btnSaveCustomer.addEventListener('click', submitAddCustomerForm);

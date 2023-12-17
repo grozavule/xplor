@@ -39,11 +39,12 @@
                         <label class="form-label">Address:</label>
                         <textarea name="address" id="address" class="form-control"></textarea>
                     </div>
+                    @csrf
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Add</button>
+                <button type="button" class="btn btn-primary" id="btn-save-customer">Save</button>
             </div>
         </div>
     </div>
